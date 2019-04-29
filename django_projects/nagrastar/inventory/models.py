@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 class STBModel(models.Model):
@@ -8,9 +9,9 @@ class STBModel(models.Model):
     rid = models.CharField('Receiver ID', max_length=10, help_text='10 numeric starting from R')
     sid = models.CharField('Smart Card ID', max_length=10, help_text='10 numeric starting from S')
     
-    def __str__(stbmodel):
+    def __str__(self):
         """String for representing the Model object."""
-        return self.stbmodel
+        return self.rid
 
 
 from django.urls import reverse # Used to generate URLs by reversing the URL patterns
@@ -25,13 +26,12 @@ class Account(models.Model):
     
     # ManyToManyField used because genre can contain many books. Books can cover many genres.
     # Genre class has already been defined so we can specify the object above.
-    stbmodel = models.ManyToManyField(STBModel, help_text='Select a receiver')
     acct_num = models.CharField('Account Number', max_length=20, help_text='20 numeric number include dashes' )
     
     def __str__(self):
         """String for representing the Model object."""
-        return self.title
-    
+        return self.acct_num
+
     def get_absolute_url(self):
         """Returns the url to access a detail record for account."""
         return reverse('account-detail', args=[str(self.id)])
@@ -42,11 +42,11 @@ class AccountInstance(models.Model):
     """Model representing a specific copy of a book (i.e. that can be borrowed from the library)."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular book across whole library')
     account = models.ForeignKey('Account', on_delete=models.SET_NULL, null=True) 
-    
+    stbmodel = models.ManyToManyField(STBModel, help_text='Select a receiver')
 
     def __str__(self):
         """String for representing the Model object."""
-        return f'{self.id} ({self.book.title})'
+        return '{0} ({1}))'.format(self.id, self.account.acct_num)
 
 class Owner(models.Model):
     """Model representing an author."""
